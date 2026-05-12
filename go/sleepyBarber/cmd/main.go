@@ -1,30 +1,38 @@
 package main
 
 import (
-	"fmt"
 	"sleepybarber/cmd/barber"
 	"sleepybarber/cmd/utils"
-	"time"
 )
 
 func main() {
-	var barberMan barber.Barber = barber.Barber{}
-	var shop barber.Shop = barber.Shop{ChairNumber: 5, Barber: &barberMan}
+	channel := make(barber.Chairs, 5)
 
-	fmt.Println(shop.ChairNumber)
+	var barberMan barber.Barber = barber.Barber{Sleeping: false}
+	var shop barber.Shop = barber.Shop{Chairs: channel}
 
-	var clientId uint = 0
+	go startBarber(&shop, &barberMan)
+	go startCustomers(&shop)
 
 	for {
-		utils.SleepRandom()
-
-		var client barber.Client = barber.Client{Id: clientId}
-		go client.JoinBarberShop(&shop)
-
-		clientId++
 	}
+}
 
-	time.Sleep(time.Second * 10)
+func startBarber(shop *barber.Shop, barberMan *barber.Barber) {
+	go barberMan.Start(shop)
+}
+
+func startCustomers(shop *barber.Shop) {
+	var customerId uint = 0
+
+	for {
+		utils.SleepRandomMedium()
+
+		var client barber.Customer = barber.Customer{Id: customerId}
+		go client.JoinBarberShop(shop)
+
+		customerId++
+	}
 }
 
 /*
